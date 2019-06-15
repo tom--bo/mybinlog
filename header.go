@@ -165,11 +165,17 @@ type Ibody interface {
 type UnknownEvent struct {
 	id int
 }
-func (ue UnknownEvent) GetType() string {
+func (a UnknownEvent) GetType() string {
 	return "UnknownEvent"
 }
 
 // START_EVENT_V3 (Not support, not used in MySQL >= 5.0)
+type StartEventV3 struct {
+}
+func (a StartEventV3) GetType() string {
+	return "StartEventV3"
+}
+
 // QUERY_EVENT
 type QueryEvent struct {
 	ThreadID int
@@ -181,7 +187,7 @@ type QueryEvent struct {
 	DatabaseName string
 	SQLStatement string
 }
-func (qe QueryEvent) GetType() string {
+func (a QueryEvent) GetType() string {
 	return "QueryEvent"
 }
 
@@ -202,14 +208,52 @@ type StatusVariable struct {
 }
 
 // STOP_EVENT
+type StopEvent struct {
+}
+func (a StopEvent) GetType() string {
+	return "StopEvent"
+}
 // ROTATE_EVENT
+type RotateEvent struct {
+	NextPos int
+	NextName string
+}
+func (a RotateEvent) GetType() string {
+	return "RotateEvent"
+}
 // INTVAR_EVENT
+type IntVar struct {
+	OptVal1 int // 1: LAST_INSERT_ID_EVENT, 2: INSERT_ID_EVENT
+	OptVal2 int // LAST_INSERT_ID() or AUTO_INCREMENT
+}
+func (a IntVar) GetType() string {
+	return "IntVar"
+}
 // LOAD_EVENT
-// SLAVE_EVENT
+// SLAVE_EVENT (Never used)
 // CREATE_FILE_EVENT
 // APPEND_BLOCK_EVENT
+type AppendBlock struct {
+	ID int
+	Data []byte
+}
+func (a AppendBlock) GetType() string {
+	return "AppendBlock"
+}
 // EXEC_LOAD_EVENT
+type ExecLoad struct {
+	ID int
+}
+func (a ExecLoad) GetType() string {
+	return "ExecLoad"
+}
 // DELETE_FILE_EVENT
+type DeleteFile struct {
+	ID int
+}
+func (a DeleteFile) GetType() string {
+	return "DeleteFile"
+}
 // NEW_LOAD_EVENT
 // RAND_EVENT
 // USER_VAR_EVENT
@@ -222,7 +266,7 @@ type FormatDescriptionEvent struct {
 	PostHeaderLength []byte
 	// PostHeaderLength []int
 }
-func (fde FormatDescriptionEvent) GetType() string {
+func (a FormatDescriptionEvent) GetType() string {
 	return "FormatDescriptionEvent"
 }
 

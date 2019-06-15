@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -31,12 +32,13 @@ func parseAfterStatusVariables(d []byte, dbnamelen int) (string, string) {
 	return string(d[:dbnamelen]), string(d[dbnamelen+1:len(d)-4]) // ?? there is unknown 4 byte after sql_statement
 }
 
-func parseData(typeCode LogEventType, d []byte) Ibody {
+func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	eventCount[typeCode] += 1
 	switch typeCode {
 	case UNKNOWN_EVENT:
-		return UnknownEvent{}
+		return UnknownEvent{}, nil
 	case START_EVENT_V3:
+		return StartEventV3{}, nil
 	case QUERY_EVENT:
 		dbnamelen := int(d[8])
 		statusVarLen := int(binary.LittleEndian.Uint16(d[11:13]))
@@ -56,16 +58,44 @@ func parseData(typeCode LogEventType, d []byte) Ibody {
 			DatabaseName: dbname,
 			SQLStatement: sql,
 		}
-		return ret
+		return ret, nil
 	case STOP_EVENT:
+		return StopEvent{}, nil
 	case ROTATE_EVENT:
+		ret := RotateEvent{
+			NextPos: int(binary.LittleEndian.Uint16(d[:8])),
+			NextName: string(d[8:len(d)-4]),
+		}
+		return ret, nil
 	case INTVAR_EVENT:
+		if len(d) != 9+4 {
+			return IntVar{}, errors.New("Unexpected data in INTVAR_EVENT")
+		}
+		ret := IntVar{
+			OptVal1: int(d[0]),
+			OptVal2: int(binary.LittleEndian.Uint64(d[1:len(d)-4])),
+		}
+		return ret, nil
 	case LOAD_EVENT:
 	case SLAVE_EVENT:
+		return UnknownEvent{}, errors.New("SLAVE_EVENT is never used...")
 	case CREATE_FILE_EVENT:
 	case APPEND_BLOCK_EVENT:
+		ret := AppendBlock{
+			ID: int(binary.LittleEndian.Uint32(d[:4])),
+			Data: d[4:],
+		}
+		return ret, nil
 	case EXEC_LOAD_EVENT:
+		ret := ExecLoad{
+			ID: int(binary.LittleEndian.Uint32(d[:4])),
+		}
+		return ret, nil
 	case DELETE_FILE_EVENT:
+		ret := DeleteFile{
+			ID: int(binary.LittleEndian.Uint32(d[:4])),
+		}
+		return ret, nil
 	case NEW_LOAD_EVENT:
 	case RAND_EVENT:
 	case USER_VAR_EVENT:
@@ -77,7 +107,7 @@ func parseData(typeCode LogEventType, d []byte) Ibody {
 			HeaderLength: int(d[56]),
 			PostHeaderLength: d[57:],
 		}
-		return ret
+		return ret, nil
 	case XID_EVENT:
 	case BEGIN_LOAD_QUERY_EVENT:
 	case EXECUTE_LOAD_QUERY_EVENT:
@@ -100,7 +130,7 @@ func parseData(typeCode LogEventType, d []byte) Ibody {
 	case PREVIOUS_GTIDS_LOG_EVENT:
 	case ENUM_END_EVENT:
 	}
-	return UnknownEvent{}
+	return UnknownEvent{}, errors.New("Can't detect event")
 }
 
 func main() {
@@ -145,12 +175,15 @@ func main() {
 		events := []Event{}
 		pos := 4
 		totalCount := 0
+		successCount := 0
 		unknownCount := 0
+		errorCount := 0
 		for pos+19 < l-1 && pos != 0 {
 			if int64(binary.LittleEndian.Uint32(buf[pos : pos+4])) == 0 {
 				// remaining bytes
 				break
 			}
+			totalCount += 1
 
 			ts := int64(binary.LittleEndian.Uint32(buf[pos : pos+4]))
 			head := Header{
@@ -172,7 +205,15 @@ func main() {
 			}
 
 			// fmt.Println(head)
-			b := parseData(head.Typecode, buf[pos+19:head.NextPosition])
+			b, err := parseData(head.Typecode, buf[pos+19:head.NextPosition])
+			if err != nil {
+				fmt.Println(err)
+				errorCount += 1
+				pos = head.NextPosition
+				continue
+			} else {
+				successCount += 1
+			}
 
 			if b.GetType() != "UnknownEvent" {
 				if doPrint {
@@ -184,7 +225,6 @@ func main() {
 			} else {
 				unknownCount += 1
 			}
-			totalCount += 1
 
 			event := Event {
 				header: head,
@@ -196,6 +236,8 @@ func main() {
 		}
 
 		fmt.Println("totalCount: ", totalCount)
+		fmt.Println("successCount: ", successCount)
+		fmt.Println("errorCount: ", errorCount)
 		fmt.Println("unknownCount: ", unknownCount)
 		fmt.Println("-- Event count -- ")
 		for k,v := range eventCount {
