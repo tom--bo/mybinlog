@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var eventCount map[LogEventType]int
+
 func parseStatusVariables(d []byte) StatusVariable {
 	return StatusVariable{} // ?? todo
 }
@@ -29,6 +31,7 @@ func parseAfterStatusVariables(d []byte, dbnamelen int) (string, string) {
 }
 
 func parseData(typeCode LogEventType, d []byte) Ibody {
+	eventCount[typeCode] += 1
 	switch typeCode {
 	case UNKNOWN_EVENT:
 		return UnknownEvent{}
@@ -102,6 +105,7 @@ func parseData(typeCode LogEventType, d []byte) Ibody {
 func main() {
 	doPrintJSON := false
 	// headers := []Header{}
+	eventCount = make(map[LogEventType]int, 37)
 
 	// read files
 	f, err := os.Open("binlog.000004")
@@ -162,9 +166,9 @@ func main() {
 
 		if b.GetType() != "UnknownEvent" {
 			fmt.Println(head)
-			fmt.Println("----")
+			fmt.Println(b.GetType())
 			fmt.Println(b)
-			fmt.Println("----")
+			fmt.Println("----\n")
 		} else {
 			unknownCount += 1
 		}
@@ -181,4 +185,8 @@ func main() {
 
 	fmt.Println("totalCount: ", totalCount)
 	fmt.Println("unknownCount: ", unknownCount)
+	fmt.Println("-- Event count -- ")
+	for k,v := range eventCount {
+		fmt.Printf("%25s: %d\n", k, v)
+	}
 }
