@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -103,90 +104,102 @@ func parseData(typeCode LogEventType, d []byte) Ibody {
 }
 
 func main() {
-	doPrintJSON := false
+	var doPrint, doPrintJSON bool
 	// headers := []Header{}
-	eventCount = make(map[LogEventType]int, 37)
 
-	// read files
-	f, err := os.Open("binlog.000004")
-	if err != nil {
-		fmt.Println("Can't open a file")
-	}
-	defer f.Close()
-	buf := make([]byte, 10240)
+	// flags
+	flag.BoolVar(&doPrint, "p", false, "Do print events")
+	flag.BoolVar(&doPrintJSON, "j", false, "Do print event headers as JSON")
+	flag.Parse()
 
-	for {
-		n, err := f.Read(buf)
-		if n == 0 {
-			break
-		}
+	for _, f := range flag.Args() {
+		fmt.Println("Read [", f, "] ...")
+		// initialize each binlog file
+		eventCount = make(map[LogEventType]int, 37)
+
+		// read files
+		f, err := os.Open(f)
 		if err != nil {
-			fmt.Println("Some error happen during reading files")
+			fmt.Println("Can't open a file")
 		}
-	}
+		defer f.Close()
+		buf := make([]byte, 10240)
 
-	l := len(buf)
-
-	if l < 4 || string(buf[1:4]) != "bin" {
-		fmt.Println("This is not a binlog!!")
-		return
-	}
-
-	events := []Event{}
-	pos := 4
-	totalCount := 0
-	unknownCount := 0
-	for pos+19 < l-1 && pos != 0 {
-		if int64(binary.LittleEndian.Uint32(buf[pos : pos+4])) == 0 {
-			// remaining bytes
-			break
-		}
-
-		ts := int64(binary.LittleEndian.Uint32(buf[pos : pos+4]))
-		head := Header{
-			Timestamp:    time.Unix(ts, 0),
-			Typecode:     LogEventType(int(buf[pos+4])),
-			ServerID:     int(binary.LittleEndian.Uint32(buf[pos+5 : pos+9])),
-			Eventlength:  int(binary.LittleEndian.Uint32(buf[pos+9 : pos+13])),
-			NextPosition: int(binary.LittleEndian.Uint32(buf[pos+13 : pos+17])),
-			Flags:        buf[pos+17 : pos+19],
-		}
-
-		if doPrintJSON {
-			jsonb, err := json.Marshal(head)
-			if err != nil {
-				fmt.Println(err)
+		for {
+			n, err := f.Read(buf)
+			if n == 0 {
 				break
 			}
-			fmt.Println(string(jsonb))
+			if err != nil {
+				fmt.Println("Some error happen during reading files")
+			}
 		}
 
-		// fmt.Println(head)
-		b := parseData(head.Typecode, buf[pos+19:head.NextPosition])
+		l := len(buf)
 
-		if b.GetType() != "UnknownEvent" {
-			fmt.Println(head)
-			fmt.Println(b.GetType())
-			fmt.Println(b)
-			fmt.Println("----\n")
-		} else {
-			unknownCount += 1
+		if l < 4 || string(buf[1:4]) != "bin" {
+			fmt.Println("This is not a binlog!!")
+			return
 		}
-		totalCount += 1
 
-		event := Event {
-			header: head,
-			body: b,
+		events := []Event{}
+		pos := 4
+		totalCount := 0
+		unknownCount := 0
+		for pos+19 < l-1 && pos != 0 {
+			if int64(binary.LittleEndian.Uint32(buf[pos : pos+4])) == 0 {
+				// remaining bytes
+				break
+			}
+
+			ts := int64(binary.LittleEndian.Uint32(buf[pos : pos+4]))
+			head := Header{
+				Timestamp:    time.Unix(ts, 0),
+				Typecode:     LogEventType(int(buf[pos+4])),
+				ServerID:     int(binary.LittleEndian.Uint32(buf[pos+5 : pos+9])),
+				Eventlength:  int(binary.LittleEndian.Uint32(buf[pos+9 : pos+13])),
+				NextPosition: int(binary.LittleEndian.Uint32(buf[pos+13 : pos+17])),
+				Flags:        buf[pos+17 : pos+19],
+			}
+
+			if doPrintJSON {
+				jsonb, err := json.Marshal(head)
+				if err != nil {
+					fmt.Println(err)
+					break
+				}
+				fmt.Println(string(jsonb))
+			}
+
+			// fmt.Println(head)
+			b := parseData(head.Typecode, buf[pos+19:head.NextPosition])
+
+			if b.GetType() != "UnknownEvent" {
+				if doPrint {
+					fmt.Println(head)
+					fmt.Println(b.GetType())
+					fmt.Println(b)
+					fmt.Println("----\n")
+				}
+			} else {
+				unknownCount += 1
+			}
+			totalCount += 1
+
+			event := Event {
+				header: head,
+				body: b,
+			}
+			events = append(events, event)
+
+			pos = head.NextPosition
 		}
-		events = append(events, event)
 
-		pos = head.NextPosition
-	}
-
-	fmt.Println("totalCount: ", totalCount)
-	fmt.Println("unknownCount: ", unknownCount)
-	fmt.Println("-- Event count -- ")
-	for k,v := range eventCount {
-		fmt.Printf("%25s: %d\n", k, v)
+		fmt.Println("totalCount: ", totalCount)
+		fmt.Println("unknownCount: ", unknownCount)
+		fmt.Println("-- Event count -- ")
+		for k,v := range eventCount {
+			fmt.Printf("%25s: %d\n", k, v)
+		}
 	}
 }

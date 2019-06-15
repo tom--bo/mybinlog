@@ -169,7 +169,7 @@ func (ue UnknownEvent) GetType() string {
 	return "UnknownEvent"
 }
 
-// START_EVENT_V3
+// START_EVENT_V3 (Not support, not used in MySQL >= 5.0)
 // QUERY_EVENT
 type QueryEvent struct {
 	ThreadID int
