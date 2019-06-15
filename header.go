@@ -49,6 +49,86 @@ const (
 	ENUM_END_EVENT
 )
 
+func (lt LogEventType) String() string {
+	switch lt {
+	case UNKNOWN_EVENT:
+		return "UNKNOWN_EVENT"
+	case START_EVENT_V3:
+		return "START_EVENT_V3"
+	case QUERY_EVENT:
+		return "QUERY_EVENT"
+	case STOP_EVENT:
+		return "STOP_EVENT"
+	case ROTATE_EVENT:
+		return "ROTATE_EVENT"
+	case INTVAR_EVENT:
+		return "INTVAR_EVENT"
+	case LOAD_EVENT:
+		return "LOAD_EVENT"
+	case SLAVE_EVENT:
+		return "SLAVE_EVENT"
+	case CREATE_FILE_EVENT:
+		return "CREATE_FILE_EVENT"
+	case APPEND_BLOCK_EVENT:
+		return "APPEND_BLOCK_EVENT"
+	case EXEC_LOAD_EVENT:
+		return "EXEC_LOAD_EVENT"
+	case DELETE_FILE_EVENT:
+		return "DELETE_FILE_EVENT"
+	case NEW_LOAD_EVENT:
+		return "NEW_LOAD_EVENT"
+	case RAND_EVENT:
+		return "RAND_EVENT"
+	case USER_VAR_EVENT:
+		return "USER_VAR_EVENT"
+	case FORMAT_DESCRIPTION_EVENT:
+		return "FORMAT_DESCRIPTION_EVENT"
+	case XID_EVENT:
+		return "XID_EVENT"
+	case BEGIN_LOAD_QUERY_EVENT:
+		return "BEGIN_LOAD_QUERY_EVENT"
+	case EXECUTE_LOAD_QUERY_EVENT:
+		return "EXECUTE_LOAD_QUERY_EVENT"
+	case TABLE_MAP_EVENT:
+		return "TABLE_MAP_EVENT"
+	case PRE_GA_WRITE_ROWS_EVENT:
+		return "PRE_GA_WRITE_ROWS_EVENT"
+	case PRE_GA_UPDATE_ROWS_EVENT:
+		return "PRE_GA_UPDATE_ROWS_EVENT"
+	case PRE_GA_DELETE_ROWS_EVENT:
+		return "PRE_GA_DELETE_ROWS_EVENT"
+	case WRITE_ROWS_EVENT:
+		return "WRITE_ROWS_EVENT"
+	case UPDATE_ROWS_EVENT:
+		return "UPDATE_ROWS_EVENT"
+	case DELETE_ROWS_EVENT:
+		return "DELETE_ROWS_EVENT"
+	case INCIDENT_EVENT:
+		return "INCIDENT_EVENT"
+	case HEARTBEAT_LOG_EVENT:
+		return "HEARTBEAT_LOG_EVENT"
+	case IGNORABLE_LOG_EVENT:
+		return "IGNORABLE_LOG_EVENT"
+	case ROWS_QUERY_LOG_EVENT:
+		return "ROWS_QUERY_LOG_EVENT"
+	case WRITE_ROWS_EVENT2:
+		return "WRITE_ROWS_EVENT2"
+	case UPDATE_ROWS_EVENT2:
+		return "UPDATE_ROWS_EVENT2"
+	case DELETE_ROWS_EVENT2:
+		return "DELETE_ROWS_EVENT2"
+	case GTID_LOG_EVENT:
+		return "GTID_LOG_EVENT"
+	case ANONYMOUS_GTID_LOG_EVENT:
+		return "ANONYMOUS_GTID_LOG_EVENT"
+	case PREVIOUS_GTIDS_LOG_EVENT:
+		return "PREVIOUS_GTIDS_LOG_EVENT"
+	case ENUM_END_EVENT:
+		return "ENUM_END_EVENT"
+	}
+	return "UNKNOWN_EVENT"
+}
+
 type Event struct {
 	header Header
 	body Ibody // event_data
@@ -92,10 +172,33 @@ func (ue UnknownEvent) GetType() string {
 // START_EVENT_V3
 // QUERY_EVENT
 type QueryEvent struct {
-	id int
+	ThreadID int
+	ExecutionTime int
+	DBNameLen int
+	ErrorCode int
+	StatusVarLen int
+	StatusVariables StatusVariable
+	DatabaseName string
+	SQLStatement string
 }
 func (qe QueryEvent) GetType() string {
 	return "QueryEvent"
+}
+
+type StatusVariable struct {
+	Flags2 []byte // not supported (only as of 5.0)
+	SQLMode []byte
+	Catalog string // not supported (only 5.0.0 to 5.0.3)
+	AutoIncrement1 uint16
+	AutoIncrement2 uint16 // auto_increment_offset
+	Charset1 uint16 // character_set_client
+	Charset2 uint16 // collation_connection
+	Charset3 uint16 // collation_server
+	Timezone string
+	CatalogNZ string
+	LCTimeNames uint16 //lc_time_names
+	CharsetDatabase uint16 // collation_database
+	TableMapForUpdate []byte
 }
 
 // STOP_EVENT

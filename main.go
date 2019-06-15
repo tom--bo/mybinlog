@@ -8,12 +8,51 @@ import (
 	"time"
 )
 
+func parseStatusVariables(d []byte) StatusVariable {
+	return StatusVariable{} // ?? todo
+}
+
+/*
+func searchNullPosition(d []byte) int {
+	for i, b := range d {
+		if b == 0 {
+			return i
+		}
+	}
+	return -1
+}
+*/
+
+// parse database_name and SQL_statement
+func parseAfterStatusVariables(d []byte, dbnamelen int) (string, string) {
+	return string(d[:dbnamelen]), string(d[dbnamelen+1:len(d)-4]) // ?? there is unknown 4 byte after sql_statement
+}
+
 func parseData(typeCode LogEventType, d []byte) Ibody {
 	switch typeCode {
 	case UNKNOWN_EVENT:
 		return UnknownEvent{}
 	case START_EVENT_V3:
 	case QUERY_EVENT:
+		dbnamelen := int(d[8])
+		statusVarLen := int(binary.LittleEndian.Uint16(d[11:13]))
+		statusVariable := StatusVariable{}
+		if statusVarLen != 0 {
+			statusVariable = parseStatusVariables(d[13:13+statusVarLen])
+		}
+		dbname, sql := parseAfterStatusVariables(d[13+statusVarLen:], dbnamelen)
+
+		ret := QueryEvent{
+			ThreadID: int(binary.LittleEndian.Uint16(d[:4])),
+			ExecutionTime: int(binary.LittleEndian.Uint16(d[4:8])),
+			DBNameLen: dbnamelen,
+			ErrorCode: int(binary.LittleEndian.Uint16(d[9:11])),
+			StatusVarLen: statusVarLen,
+			StatusVariables: statusVariable,
+			DatabaseName: dbname,
+			SQLStatement: sql,
+		}
+		return ret
 	case STOP_EVENT:
 	case ROTATE_EVENT:
 	case INTVAR_EVENT:
@@ -91,6 +130,8 @@ func main() {
 
 	events := []Event{}
 	pos := 4
+	totalCount := 0
+	unknownCount := 0
 	for pos+19 < l-1 && pos != 0 {
 		if int64(binary.LittleEndian.Uint32(buf[pos : pos+4])) == 0 {
 			// remaining bytes
@@ -124,7 +165,10 @@ func main() {
 			fmt.Println("----")
 			fmt.Println(b)
 			fmt.Println("----")
+		} else {
+			unknownCount += 1
 		}
+		totalCount += 1
 
 		event := Event {
 			header: head,
@@ -134,4 +178,7 @@ func main() {
 
 		pos = head.NextPosition
 	}
+
+	fmt.Println("totalCount: ", totalCount)
+	fmt.Println("unknownCount: ", unknownCount)
 }
