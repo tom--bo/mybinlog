@@ -34,9 +34,6 @@ func parseData(typeCode LogEventType, d []byte) Ibody {
 			HeaderLength: int(d[56]),
 			PostHeaderLength: d[57:],
 		}
-		fmt.Println("----")
-		fmt.Println(ret)
-		fmt.Println("----")
 		return ret
 	case XID_EVENT:
 	case BEGIN_LOAD_QUERY_EVENT:
@@ -119,8 +116,15 @@ func main() {
 			fmt.Println(string(jsonb))
 		}
 
-		fmt.Println(head)
+		// fmt.Println(head)
 		b := parseData(head.Typecode, buf[pos+19:head.NextPosition])
+
+		if b.GetType() != "UnknownEvent" {
+			fmt.Println(head)
+			fmt.Println("----")
+			fmt.Println(b)
+			fmt.Println("----")
+		}
 
 		event := Event {
 			header: head,
