@@ -98,6 +98,14 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		return ret, nil
 	case NEW_LOAD_EVENT:
 	case RAND_EVENT:
+		if len(d) != 20 {
+			return Rand{}, errors.New("Unexpected data in RandEvent")
+		}
+		return Rand{
+			FirstSeed: int(binary.LittleEndian.Uint64(d[:8])),
+			SecondSeed: int(binary.LittleEndian.Uint64(d[8:16])),
+		}, nil
+
 	case USER_VAR_EVENT:
 	case FORMAT_DESCRIPTION_EVENT: // 15
 		ret := FormatDescriptionEvent{
@@ -109,17 +117,41 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		}
 		return ret, nil
 	case XID_EVENT:
+		if len(d) != 12 {
+			return XID{}, errors.New("Unexpected data in XIDEvent")
+		}
+		return XID{
+			XID: int(binary.LittleEndian.Uint64(d[:8])),
+		}, nil
 	case BEGIN_LOAD_QUERY_EVENT:
+		return BeginLoadQuery{
+			ID: int(binary.LittleEndian.Uint32(d[:4])),
+			Data: d[4:len(d)-4],
+		}, nil
 	case EXECUTE_LOAD_QUERY_EVENT:
 	case TABLE_MAP_EVENT:
 	case PRE_GA_WRITE_ROWS_EVENT:
+		return PreGAWriteRows{}, nil
 	case PRE_GA_UPDATE_ROWS_EVENT:
+		return PreGAUpdateRows{}, nil
 	case PRE_GA_DELETE_ROWS_EVENT:
+		return PreGADeleteRows{}, nil
 	case WRITE_ROWS_EVENT:
 	case UPDATE_ROWS_EVENT:
 	case DELETE_ROWS_EVENT:
 	case INCIDENT_EVENT:
+		incidentLen := int(d[1])
+		m := ""
+		if incidentLen != 0 {
+			m = string(d[2:2+incidentLen])
+		}
+		return Incident{
+			IncidentNum: int(d[0]),
+			MessageLen: incidentLen,
+			Message: m,
+		}, nil
 	case HEARTBEAT_LOG_EVENT:
+		return HeartbeatLog{}, nil
 	case IGNORABLE_LOG_EVENT:
 	case ROWS_QUERY_LOG_EVENT:
 	case WRITE_ROWS_EVENT2:

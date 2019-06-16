@@ -256,6 +256,13 @@ func (a DeleteFile) GetType() string {
 }
 // NEW_LOAD_EVENT
 // RAND_EVENT
+type Rand struct {
+	FirstSeed int
+	SecondSeed int
+}
+func (a Rand) GetType() string {
+	return "Rand"
+}
 // USER_VAR_EVENT
 // FORMAT_DESCRIPTION_EVENT
 type FormatDescriptionEvent struct {
@@ -271,17 +278,58 @@ func (a FormatDescriptionEvent) GetType() string {
 }
 
 // XID_EVENT
+type XID struct {
+	XID int
+}
+func (a XID) GetType() string {
+	return "XID"
+}
 // BEGIN_LOAD_QUERY_EVENT
+type BeginLoadQuery struct {
+	ID int
+	Data []byte
+}
+func (a BeginLoadQuery) GetType() string {
+	return "BeginLoadQuery"
+}
 // EXECUTE_LOAD_QUERY_EVENT
 // TABLE_MAP_EVENT
-// PRE_GA_WRITE_ROWS_EVENT
-// PRE_GA_UPDATE_ROWS_EVENT
-// PRE_GA_DELETE_ROWS_EVENT
+// PRE_GA_WRITE_ROWS_EVENT (not support, only in 5.1.5 to 5.1.17)
+type PreGAWriteRows struct {
+}
+func (a PreGAWriteRows) GetType() string {
+	return "PreGAWriteRows"
+}
+// PRE_GA_UPDATE_ROWS_EVENT (not support, only in 5.1.5 to 5.1.17)
+type PreGAUpdateRows struct {
+}
+func (a PreGAUpdateRows) GetType() string {
+	return "PreGAUpdateRows"
+}
+// PRE_GA_DELETE_ROWS_EVENT (not support, only in 5.1.5 to 5.1.17)
+type PreGADeleteRows struct {
+}
+func (a PreGADeleteRows) GetType() string {
+	return "PreGADeleteRows"
+}
 // WRITE_ROWS_EVENT
 // UPDATE_ROWS_EVENT
 // DELETE_ROWS_EVENT
 // INCIDENT_EVENT
-// HEARTBEAT_LOG_EVENT
+type Incident struct {
+	IncidentNum int
+	MessageLen int
+	Message string
+}
+func (a Incident) GetType() string {
+	return "Incident"
+}
+// HEARTBEAT_LOG_EVENT (not used now)
+type HeartbeatLog struct {
+}
+func (a HeartbeatLog) GetType() string {
+	return "HeartbeatLog"
+}
 // IGNORABLE_LOG_EVENT
 // ROWS_QUERY_LOG_EVENT
 // WRITE_ROWS_EVENT2
