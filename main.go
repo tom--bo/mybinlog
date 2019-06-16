@@ -195,15 +195,6 @@ func main() {
 				Flags:        buf[pos+17 : pos+19],
 			}
 
-			if doPrintJSON {
-				jsonb, err := json.Marshal(head)
-				if err != nil {
-					fmt.Println(err)
-					break
-				}
-				fmt.Println(string(jsonb))
-			}
-
 			// fmt.Println(head)
 			b, err := parseData(head.Typecode, buf[pos+19:head.NextPosition])
 			if err != nil {
@@ -227,10 +218,19 @@ func main() {
 			}
 
 			event := Event {
-				header: head,
-				body: b,
+				Header: head,
+				Body: b,
 			}
 			events = append(events, event)
+
+			if doPrintJSON {
+				j, err := json.Marshal(event)
+				if err != nil {
+					fmt.Println(err)
+					break
+				}
+				fmt.Println(string(j))
+			}
 
 			pos = head.NextPosition
 		}

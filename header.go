@@ -130,8 +130,8 @@ func (lt LogEventType) String() string {
 }
 
 type Event struct {
-	header Header
-	body Ibody // event_data
+	Header Header
+	Body Ibody // event_data
 }
 
 type Header struct {
