@@ -29,7 +29,7 @@ func searchNullPosition(d []byte) int {
 
 // parse database_name and SQL_statement
 func parseAfterStatusVariables(d []byte, dbnamelen int) (string, string) {
-	return string(d[:dbnamelen]), string(d[dbnamelen+1:len(d)-4]) // ?? there is unknown 4 byte after sql_statement
+	return string(d[:dbnamelen]), string(d[dbnamelen+1 : len(d)-4]) // ?? there is unknown 4 byte after sql_statement
 }
 
 func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
@@ -44,27 +44,27 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		statusVarLen := int(binary.LittleEndian.Uint16(d[11:13]))
 		statusVariable := StatusVariable{}
 		if statusVarLen != 0 {
-			statusVariable = parseStatusVariables(d[13:13+statusVarLen])
+			statusVariable = parseStatusVariables(d[13 : 13+statusVarLen])
 		}
 		dbname, sql := parseAfterStatusVariables(d[13+statusVarLen:], dbnamelen)
 
 		ret := QueryEvent{
-			ThreadID: int(binary.LittleEndian.Uint16(d[:4])),
-			ExecutionTime: int(binary.LittleEndian.Uint16(d[4:8])),
-			DBNameLen: dbnamelen,
-			ErrorCode: int(binary.LittleEndian.Uint16(d[9:11])),
-			StatusVarLen: statusVarLen,
+			ThreadID:        int(binary.LittleEndian.Uint16(d[:4])),
+			ExecutionTime:   int(binary.LittleEndian.Uint16(d[4:8])),
+			DBNameLen:       dbnamelen,
+			ErrorCode:       int(binary.LittleEndian.Uint16(d[9:11])),
+			StatusVarLen:    statusVarLen,
 			StatusVariables: statusVariable,
-			DatabaseName: dbname,
-			SQLStatement: sql,
+			DatabaseName:    dbname,
+			SQLStatement:    sql,
 		}
 		return ret, nil
 	case STOP_EVENT:
 		return StopEvent{}, nil
 	case ROTATE_EVENT:
 		ret := RotateEvent{
-			NextPos: int(binary.LittleEndian.Uint16(d[:8])),
-			NextName: string(d[8:len(d)-4]),
+			NextPos:  int(binary.LittleEndian.Uint16(d[:8])),
+			NextName: string(d[8 : len(d)-4]),
 		}
 		return ret, nil
 	case INTVAR_EVENT:
@@ -73,7 +73,7 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		}
 		ret := IntVar{
 			OptVal1: int(d[0]),
-			OptVal2: int(binary.LittleEndian.Uint64(d[1:len(d)-4])),
+			OptVal2: int(binary.LittleEndian.Uint64(d[1 : len(d)-4])),
 		}
 		return ret, nil
 	case LOAD_EVENT:
@@ -82,7 +82,7 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	case CREATE_FILE_EVENT:
 	case APPEND_BLOCK_EVENT:
 		ret := AppendBlock{
-			ID: int(binary.LittleEndian.Uint32(d[:4])),
+			ID:   int(binary.LittleEndian.Uint32(d[:4])),
 			Data: d[4:],
 		}
 		return ret, nil
@@ -102,17 +102,17 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 			return Rand{}, errors.New("Unexpected data in RandEvent")
 		}
 		return Rand{
-			FirstSeed: int(binary.LittleEndian.Uint64(d[:8])),
+			FirstSeed:  int(binary.LittleEndian.Uint64(d[:8])),
 			SecondSeed: int(binary.LittleEndian.Uint64(d[8:16])),
 		}, nil
 
 	case USER_VAR_EVENT:
 	case FORMAT_DESCRIPTION_EVENT: // 15
 		ret := FormatDescriptionEvent{
-			BinlogEvent: int(binary.LittleEndian.Uint16(d[:2])),
-			ServerVersion: string(d[2:52]),
-			CreateTimeStamp: time.Unix(int64(binary.LittleEndian.Uint32(d[52:56])), 0),
-			HeaderLength: int(d[56]),
+			BinlogEvent:      int(binary.LittleEndian.Uint16(d[:2])),
+			ServerVersion:    string(d[2:52]),
+			CreateTimeStamp:  time.Unix(int64(binary.LittleEndian.Uint32(d[52:56])), 0),
+			HeaderLength:     int(d[56]),
 			PostHeaderLength: d[57:],
 		}
 		return ret, nil
@@ -125,8 +125,8 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		}, nil
 	case BEGIN_LOAD_QUERY_EVENT:
 		return BeginLoadQuery{
-			ID: int(binary.LittleEndian.Uint32(d[:4])),
-			Data: d[4:len(d)-4],
+			ID:   int(binary.LittleEndian.Uint32(d[:4])),
+			Data: d[4 : len(d)-4],
 		}, nil
 	case EXECUTE_LOAD_QUERY_EVENT:
 	case TABLE_MAP_EVENT:
@@ -143,12 +143,12 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		incidentLen := int(d[1])
 		m := ""
 		if incidentLen != 0 {
-			m = string(d[2:2+incidentLen])
+			m = string(d[2 : 2+incidentLen])
 		}
 		return Incident{
 			IncidentNum: int(d[0]),
-			MessageLen: incidentLen,
-			Message: m,
+			MessageLen:  incidentLen,
+			Message:     m,
 		}, nil
 	case HEARTBEAT_LOG_EVENT:
 		return HeartbeatLog{}, nil
@@ -185,7 +185,7 @@ func main() {
 			fmt.Println("Can't open a file")
 		}
 		defer f.Close()
-		buf := make([]byte, 10240)
+		buf := make([]byte, 102400)
 
 		for {
 			n, err := f.Read(buf)
@@ -195,6 +195,7 @@ func main() {
 			if err != nil {
 				fmt.Println("Some error happen during reading files")
 			}
+			break
 		}
 
 		l := len(buf)
@@ -211,7 +212,7 @@ func main() {
 		unknownCount := 0
 		errorCount := 0
 		for pos+19 < l-1 && pos != 0 {
-			if int64(binary.LittleEndian.Uint32(buf[pos : pos+4])) == 0 {
+			if int64(binary.LittleEndian.Uint32(buf[pos:pos+4])) == 0 {
 				// remaining bytes
 				break
 			}
@@ -230,7 +231,7 @@ func main() {
 			// fmt.Println(head)
 			b, err := parseData(head.Typecode, buf[pos+19:head.NextPosition])
 			if err != nil {
-				fmt.Println(err)
+				// fmt.Println(err)
 				errorCount += 1
 				pos = head.NextPosition
 				continue
@@ -249,9 +250,9 @@ func main() {
 				unknownCount += 1
 			}
 
-			event := Event {
+			event := Event{
 				Header: head,
-				Body: b,
+				Body:   b,
 			}
 			events = append(events, event)
 
@@ -272,7 +273,7 @@ func main() {
 		fmt.Println("errorCount: ", errorCount)
 		fmt.Println("unknownCount: ", unknownCount)
 		fmt.Println("-- Event count -- ")
-		for k,v := range eventCount {
+		for k, v := range eventCount {
 			fmt.Printf("%25s: %d\n", k, v)
 		}
 	}

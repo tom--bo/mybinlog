@@ -131,7 +131,7 @@ func (lt LogEventType) String() string {
 
 type Event struct {
 	Header Header
-	Body Ibody // event_data
+	Body   Ibody // event_data
 }
 
 type Header struct {
@@ -165,6 +165,7 @@ type Ibody interface {
 type UnknownEvent struct {
 	id int
 }
+
 func (a UnknownEvent) GetType() string {
 	return "UnknownEvent"
 }
@@ -172,107 +173,124 @@ func (a UnknownEvent) GetType() string {
 // START_EVENT_V3 (Not support, not used in MySQL >= 5.0)
 type StartEventV3 struct {
 }
+
 func (a StartEventV3) GetType() string {
 	return "StartEventV3"
 }
 
 // QUERY_EVENT
 type QueryEvent struct {
-	ThreadID int
-	ExecutionTime int
-	DBNameLen int
-	ErrorCode int
-	StatusVarLen int
+	ThreadID        int
+	ExecutionTime   int
+	DBNameLen       int
+	ErrorCode       int
+	StatusVarLen    int
 	StatusVariables StatusVariable
-	DatabaseName string
-	SQLStatement string
+	DatabaseName    string
+	SQLStatement    string
 }
+
 func (a QueryEvent) GetType() string {
 	return "QueryEvent"
 }
 
 type StatusVariable struct {
-	Flags2 []byte // not supported (only as of 5.0)
-	SQLMode []byte
-	Catalog string // not supported (only 5.0.0 to 5.0.3)
-	AutoIncrement1 uint16
-	AutoIncrement2 uint16 // auto_increment_offset
-	Charset1 uint16 // character_set_client
-	Charset2 uint16 // collation_connection
-	Charset3 uint16 // collation_server
-	Timezone string
-	CatalogNZ string
-	LCTimeNames uint16 //lc_time_names
-	CharsetDatabase uint16 // collation_database
+	Flags2            []byte // not supported (only as of 5.0)
+	SQLMode           []byte
+	Catalog           string // not supported (only 5.0.0 to 5.0.3)
+	AutoIncrement1    uint16
+	AutoIncrement2    uint16 // auto_increment_offset
+	Charset1          uint16 // character_set_client
+	Charset2          uint16 // collation_connection
+	Charset3          uint16 // collation_server
+	Timezone          string
+	CatalogNZ         string
+	LCTimeNames       uint16 //lc_time_names
+	CharsetDatabase   uint16 // collation_database
 	TableMapForUpdate []byte
 }
 
 // STOP_EVENT
 type StopEvent struct {
 }
+
 func (a StopEvent) GetType() string {
 	return "StopEvent"
 }
+
 // ROTATE_EVENT
 type RotateEvent struct {
-	NextPos int
+	NextPos  int
 	NextName string
 }
+
 func (a RotateEvent) GetType() string {
 	return "RotateEvent"
 }
+
 // INTVAR_EVENT
 type IntVar struct {
 	OptVal1 int // 1: LAST_INSERT_ID_EVENT, 2: INSERT_ID_EVENT
 	OptVal2 int // LAST_INSERT_ID() or AUTO_INCREMENT
 }
+
 func (a IntVar) GetType() string {
 	return "IntVar"
 }
+
 // LOAD_EVENT
 // SLAVE_EVENT (Never used)
 // CREATE_FILE_EVENT
 // APPEND_BLOCK_EVENT
 type AppendBlock struct {
-	ID int
+	ID   int
 	Data []byte
 }
+
 func (a AppendBlock) GetType() string {
 	return "AppendBlock"
 }
+
 // EXEC_LOAD_EVENT
 type ExecLoad struct {
 	ID int
 }
+
 func (a ExecLoad) GetType() string {
 	return "ExecLoad"
 }
+
 // DELETE_FILE_EVENT
 type DeleteFile struct {
 	ID int
 }
+
 func (a DeleteFile) GetType() string {
 	return "DeleteFile"
 }
+
 // NEW_LOAD_EVENT
 // RAND_EVENT
 type Rand struct {
-	FirstSeed int
+	FirstSeed  int
 	SecondSeed int
 }
+
 func (a Rand) GetType() string {
 	return "Rand"
 }
+
 // USER_VAR_EVENT
 // FORMAT_DESCRIPTION_EVENT
 type FormatDescriptionEvent struct {
-	BinlogEvent int
-	ServerVersion string
-	CreateTimeStamp time.Time
-	HeaderLength int
+	BinlogEvent      int
+	ServerVersion    string
+	CreateTimeStamp  time.Time
+	HeaderLength     int
 	PostHeaderLength []byte
 	// PostHeaderLength []int
 }
+
 func (a FormatDescriptionEvent) GetType() string {
 	return "FormatDescriptionEvent"
 }
@@ -281,55 +299,69 @@ func (a FormatDescriptionEvent) GetType() string {
 type XID struct {
 	XID int
 }
+
 func (a XID) GetType() string {
 	return "XID"
 }
+
 // BEGIN_LOAD_QUERY_EVENT
 type BeginLoadQuery struct {
-	ID int
+	ID   int
 	Data []byte
 }
+
 func (a BeginLoadQuery) GetType() string {
 	return "BeginLoadQuery"
 }
+
 // EXECUTE_LOAD_QUERY_EVENT
 // TABLE_MAP_EVENT
 // PRE_GA_WRITE_ROWS_EVENT (not support, only in 5.1.5 to 5.1.17)
 type PreGAWriteRows struct {
 }
+
 func (a PreGAWriteRows) GetType() string {
 	return "PreGAWriteRows"
 }
+
 // PRE_GA_UPDATE_ROWS_EVENT (not support, only in 5.1.5 to 5.1.17)
 type PreGAUpdateRows struct {
 }
+
 func (a PreGAUpdateRows) GetType() string {
 	return "PreGAUpdateRows"
 }
+
 // PRE_GA_DELETE_ROWS_EVENT (not support, only in 5.1.5 to 5.1.17)
 type PreGADeleteRows struct {
 }
+
 func (a PreGADeleteRows) GetType() string {
 	return "PreGADeleteRows"
 }
+
 // WRITE_ROWS_EVENT
 // UPDATE_ROWS_EVENT
 // DELETE_ROWS_EVENT
 // INCIDENT_EVENT
 type Incident struct {
 	IncidentNum int
-	MessageLen int
-	Message string
+	MessageLen  int
+	Message     string
 }
+
 func (a Incident) GetType() string {
 	return "Incident"
 }
+
 // HEARTBEAT_LOG_EVENT (not used now)
 type HeartbeatLog struct {
 }
+
 func (a HeartbeatLog) GetType() string {
 	return "HeartbeatLog"
 }
+
 // IGNORABLE_LOG_EVENT
 // ROWS_QUERY_LOG_EVENT
 // WRITE_ROWS_EVENT2
