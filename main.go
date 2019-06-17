@@ -132,20 +132,20 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	case TABLE_MAP_EVENT:
 		dbNameLen := int(d[8])
 		tableNameLen := int(d[8+dbNameLen+2]) // DBName is terminated by NULL
-		tableNamePos := 10 + dbNameLen + 2
+		tableNamePos := 9 + dbNameLen + 2
 		numOfColPos := tableNamePos + tableNameLen + 1
 		numOfCol := int(d[numOfColPos])
-		metaBlockLenPos := numOfColPos + numOfCol
+		metaBlockLenPos := numOfColPos + 1 + numOfCol
 		isNullPos := metaBlockLenPos + 1 + int(d[metaBlockLenPos])
 		return TableMapEvent{
 			TableID:      int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
 			ReservedByte: d[6:8],
 			DBNameLen:    dbNameLen,
-			DBName:       string(d[10 : 10+dbNameLen]),
+			DBName:       string(d[9 : 9+dbNameLen]),
 			TableNameLen: tableNameLen,
 			TableName:    string(d[tableNamePos : tableNamePos+tableNameLen]),
-			NumOfCol:     int(tableNamePos + tableNameLen + 1),
-			ColType:      d[tableNamePos+tableNameLen+2 : tableNamePos+tableNameLen+2+numOfCol],
+			NumOfCol:     int(d[numOfColPos]),
+			ColType:      d[numOfColPos+1 : numOfColPos+1+numOfCol],
 			MetaBlockLen: int(d[metaBlockLenPos]),
 			MetaBlock:    d[metaBlockLenPos+1 : isNullPos],
 			IsNull:       d[isNullPos : isNullPos+(numOfCol+7)/8],
