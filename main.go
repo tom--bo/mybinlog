@@ -130,6 +130,26 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		}, nil
 	case EXECUTE_LOAD_QUERY_EVENT:
 	case TABLE_MAP_EVENT:
+		dbNameLen := int(d[8])
+		tableNameLen := int(d[8+dbNameLen+2]) // DBName is terminated by NULL
+		tableNamePos := 10 + dbNameLen + 2
+		numOfColPos := tableNamePos + tableNameLen + 1
+		numOfCol := int(d[numOfColPos])
+		metaBlockLenPos := numOfColPos + numOfCol
+		isNullPos := metaBlockLenPos + 1 + int(d[metaBlockLenPos])
+		return TableMapEvent{
+			TableID:      int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
+			ReservedByte: d[6:8],
+			DBNameLen:    dbNameLen,
+			DBName:       string(d[10 : 10+dbNameLen]),
+			TableNameLen: tableNameLen,
+			TableName:    string(d[tableNamePos : tableNamePos+tableNameLen]),
+			NumOfCol:     int(tableNamePos + tableNameLen + 1),
+			ColType:      d[tableNamePos+tableNameLen+2 : tableNamePos+tableNameLen+2+numOfCol],
+			MetaBlockLen: int(d[metaBlockLenPos]),
+			MetaBlock:    d[metaBlockLenPos+1 : isNullPos],
+			IsNull:       d[isNullPos : isNullPos+(numOfCol+7)/8],
+		}, nil
 	case PRE_GA_WRITE_ROWS_EVENT:
 		return PreGAWriteRows{}, nil
 	case PRE_GA_UPDATE_ROWS_EVENT:

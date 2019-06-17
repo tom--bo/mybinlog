@@ -316,6 +316,24 @@ func (a BeginLoadQuery) GetType() string {
 
 // EXECUTE_LOAD_QUERY_EVENT
 // TABLE_MAP_EVENT
+type TableMapEvent struct {
+	TableID      int
+	ReservedByte []byte
+	DBNameLen    int
+	DBName       string
+	TableNameLen int
+	TableName    string
+	NumOfCol     int
+	ColType      []byte
+	MetaBlockLen int
+	MetaBlock    []byte
+	IsNull       []byte
+}
+
+func (a TableMapEvent) GetType() string {
+	return "TableMapEvent"
+}
+
 // PRE_GA_WRITE_ROWS_EVENT (not support, only in 5.1.5 to 5.1.17)
 type PreGAWriteRows struct {
 }
