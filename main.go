@@ -205,7 +205,12 @@ func main() {
 			fmt.Println("Can't open a file")
 		}
 		defer f.Close()
-		buf := make([]byte, 102400)
+		fInfo, err := f.Stat()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		buf := make([]byte, fInfo.Size())
 
 		for {
 			n, err := f.Read(buf)
