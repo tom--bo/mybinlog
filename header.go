@@ -359,6 +359,19 @@ func (a PreGADeleteRows) GetType() string {
 }
 
 // WRITE_ROWS_EVENT
+type WriteRows struct {
+	TableID      int
+	ReservedByte []byte
+	NumOfCol     int
+	IsUsed       []byte
+	IsNull       []byte
+	AfterImage   []byte // todo
+}
+
+func (a WriteRows) GetType() string {
+	return "WriteRows"
+}
+
 // UPDATE_ROWS_EVENT
 // DELETE_ROWS_EVENT
 // INCIDENT_EVENT

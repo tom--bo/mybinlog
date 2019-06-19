@@ -156,9 +156,9 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		return PreGAUpdateRows{}, nil
 	case PRE_GA_DELETE_ROWS_EVENT:
 		return PreGADeleteRows{}, nil
-	case WRITE_ROWS_EVENT:
-	case UPDATE_ROWS_EVENT:
-	case DELETE_ROWS_EVENT:
+	case WRITE_ROWS_EVENT: // not support
+	case UPDATE_ROWS_EVENT: // not support
+	case DELETE_ROWS_EVENT: // not support
 	case INCIDENT_EVENT:
 		incidentLen := int(d[1])
 		m := ""
@@ -175,6 +175,18 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	case IGNORABLE_LOG_EVENT:
 	case ROWS_QUERY_LOG_EVENT:
 	case WRITE_ROWS_EVENT2:
+		numOfColPos := 8
+		numOfCol := int(d[numOfColPos])
+		isUsedEndPos := numOfColPos + 1 + (numOfCol+7)/8
+		isNullEndPos := isUsedEndPos + (numOfCol+7)/8
+		return WriteRows{
+			TableID:      int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
+			ReservedByte: d[6:8],
+			NumOfCol:     numOfCol,
+			IsUsed:       d[numOfColPos+1 : isUsedEndPos],
+			IsNull:       d[isUsedEndPos:isNullEndPos],
+			AfterImage:   d[isNullEndPos : len(d)-4],
+		}, nil
 	case UPDATE_ROWS_EVENT2:
 	case DELETE_ROWS_EVENT2:
 	case GTID_LOG_EVENT:
