@@ -32,6 +32,22 @@ func parseAfterStatusVariables(d []byte, dbnamelen int) (string, string) {
 	return string(d[:dbnamelen]), string(d[dbnamelen+1 : len(d)-4]) // ?? there is unknown 4 byte after sql_statement
 }
 
+func printEvent(e Event) {
+	fmt.Println(e.Header)
+	fmt.Println(e.Body.GetType())
+	fmt.Println(e.Body)
+	fmt.Println("----\n")
+}
+
+func printEventJSON(e Event) {
+	j, err := json.Marshal(e)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(j))
+}
+
 func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	eventCount[typeCode] += 1
 	switch typeCode {
@@ -264,32 +280,22 @@ func main() {
 				successCount += 1
 			}
 
+			event := Event{
+				Header: head,
+				Body:   b,
+			}
+
 			if b.GetType() != "UnknownEvent" {
-				if doPrint {
-					fmt.Println(head)
-					fmt.Println(b.GetType())
-					fmt.Println(b)
-					fmt.Println("----\n")
+				if doPrintJSON {
+					printEventJSON(event)
+				} else if doPrint {
+					printEvent(event)
 				}
 			} else {
 				unknownCount += 1
 			}
 
-			event := Event{
-				Header: head,
-				Body:   b,
-			}
 			events = append(events, event)
-
-			if doPrintJSON {
-				j, err := json.Marshal(event)
-				if err != nil {
-					fmt.Println(err)
-					break
-				}
-				fmt.Println(string(j))
-			}
-
 			pos = head.NextPosition
 		}
 
