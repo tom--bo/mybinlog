@@ -188,7 +188,34 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 			AfterImage:   d[isNullEndPos : len(d)-4],
 		}, nil
 	case UPDATE_ROWS_EVENT2:
+		numOfColPos := 8
+		numOfCol := int(d[numOfColPos])
+		isUsedBeforeEndPos := numOfColPos + 1 + (numOfCol+7)/8
+		isUsedAfterEndPos := isUsedBeforeEndPos + (numOfCol+7)/8
+		isNullEndPos := isUsedAfterEndPos + (numOfCol+7)/8
+		return UpdateRows{
+			TableID:      int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
+			ReservedByte: d[6:8],
+			NumOfCol:     numOfCol,
+			IsUsedBefore: d[numOfColPos+1 : isUsedBeforeEndPos],
+			IsUsedAfter:  d[isUsedBeforeEndPos:isUsedAfterEndPos],
+			IsNull:       d[isUsedAfterEndPos:isNullEndPos],
+			BeforeImage:  d[isNullEndPos : len(d)-4], // todo
+			AfterImage:   d[isNullEndPos : len(d)-4], // todo
+		}, nil
 	case DELETE_ROWS_EVENT2:
+		numOfColPos := 8
+		numOfCol := int(d[numOfColPos])
+		isUsedEndPos := numOfColPos + 1 + (numOfCol+7)/8
+		isNullEndPos := isUsedEndPos + (numOfCol+7)/8
+		return DeleteRows{
+			TableID:      int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
+			ReservedByte: d[6:8],
+			NumOfCol:     numOfCol,
+			IsUsed:       d[numOfColPos+1 : isUsedEndPos],
+			IsNull:       d[isUsedEndPos:isNullEndPos],
+			AfterImage:   d[isNullEndPos : len(d)-4],
+		}, nil
 	case GTID_LOG_EVENT:
 	case ANONYMOUS_GTID_LOG_EVENT:
 	case PREVIOUS_GTIDS_LOG_EVENT:

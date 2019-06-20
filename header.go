@@ -373,7 +373,35 @@ func (a WriteRows) GetType() string {
 }
 
 // UPDATE_ROWS_EVENT
+type UpdateRows struct {
+	TableID      int
+	ReservedByte []byte
+	NumOfCol     int
+	IsUsedBefore []byte
+	IsUsedAfter  []byte
+	IsNull       []byte
+	BeforeImage  []byte // todo
+	AfterImage   []byte // todo
+}
+
+func (a UpdateRows) GetType() string {
+	return "UpdateRows"
+}
+
 // DELETE_ROWS_EVENT
+type DeleteRows struct {
+	TableID      int
+	ReservedByte []byte
+	NumOfCol     int
+	IsUsed       []byte
+	IsNull       []byte
+	AfterImage   []byte // todo
+}
+
+func (a DeleteRows) GetType() string {
+	return "DeleteRows"
+}
+
 // INCIDENT_EVENT
 type Incident struct {
 	IncidentNum int
