@@ -140,7 +140,7 @@ type Header struct {
 	ServerID     int
 	Eventlength  int
 	NextPosition int
-	Flags        []byte
+	Flags        int
 	ExtraHeader  []byte // Not used for now
 }
 

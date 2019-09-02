@@ -289,7 +289,7 @@ func main() {
 				ServerID:     int(binary.LittleEndian.Uint32(buf[pos+5 : pos+9])),
 				Eventlength:  int(binary.LittleEndian.Uint32(buf[pos+9 : pos+13])),
 				NextPosition: int(binary.LittleEndian.Uint32(buf[pos+13 : pos+17])),
-				Flags:        buf[pos+17 : pos+19],
+				Flags:        int(binary.LittleEndian.Uint16(buf[pos+17 : pos+19])),
 			}
 
 			// fmt.Println(head)
@@ -307,7 +307,7 @@ func main() {
 				if doPrint {
 					fmt.Println(head)
 					fmt.Println(b.GetType())
-					fmt.Println(b)
+					fmt.Printf("%+v", b)
 					fmt.Println("----\n")
 				}
 			} else {
