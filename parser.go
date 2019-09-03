@@ -6,6 +6,21 @@ import (
 	"time"
 )
 
+func parseHeader(d []byte) Header {
+	pos := 0
+	ts := int64(binary.LittleEndian.Uint32(d[pos : pos+4]))
+	h := Header{
+		Timestamp:    time.Unix(ts, 0),
+		Typecode:     LogEventType(int(d[pos+4])),
+		ServerID:     int(binary.LittleEndian.Uint32(d[pos+5 : pos+9])),
+		Eventlength:  int(binary.LittleEndian.Uint32(d[pos+9 : pos+13])),
+		NextPosition: int(binary.LittleEndian.Uint32(d[pos+13 : pos+17])),
+		Flags:        int(binary.LittleEndian.Uint16(d[pos+17 : pos+19])),
+	}
+
+	return h
+}
+
 func parseStatusVariables(d []byte) StatusVariable {
 	return StatusVariable{} // ?? todo
 }

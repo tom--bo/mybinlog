@@ -9,6 +9,14 @@ const layout = "2006-01-02 15:04:05"
 
 type LogEventType int
 
+type Counter struct {
+	total   int
+	success int
+	unknown int
+	error   int
+	event   map[LogEventType]int
+}
+
 const (
 	UNKNOWN_EVENT LogEventType = iota
 	START_EVENT_V3

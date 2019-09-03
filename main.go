@@ -1,13 +1,10 @@
 package main
 
 import (
-	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"time"
 )
 
 var doPrint, doPrintJSON bool
@@ -35,71 +32,6 @@ func readFile(filename string) ([]byte, error) {
 		break
 	}
 	return buf, nil
-}
-
-type Counter struct {
-	total   int
-	success int
-	unknown int
-	error   int
-	event   map[LogEventType]int
-}
-
-func process(buf []byte) ([]Event, Counter, error) {
-	l := len(buf)
-
-	if l < 4 || string(buf[1:4]) != "bin" {
-		return nil, Counter{}, errors.New("This is not a binlog")
-	}
-
-	// initialize each binlog file
-	events := []Event{}
-	c := Counter{}
-	c.event = make(map[LogEventType]int, 37)
-
-	pos := 4
-	for pos+19 < l-1 && pos != 0 {
-		if int64(binary.LittleEndian.Uint32(buf[pos:pos+4])) == 0 {
-			// remaining bytes
-			break
-		}
-		c.total += 1
-
-		ts := int64(binary.LittleEndian.Uint32(buf[pos : pos+4]))
-		head := Header{
-			Timestamp:    time.Unix(ts, 0),
-			Typecode:     LogEventType(int(buf[pos+4])),
-			ServerID:     int(binary.LittleEndian.Uint32(buf[pos+5 : pos+9])),
-			Eventlength:  int(binary.LittleEndian.Uint32(buf[pos+9 : pos+13])),
-			NextPosition: int(binary.LittleEndian.Uint32(buf[pos+13 : pos+17])),
-			Flags:        int(binary.LittleEndian.Uint16(buf[pos+17 : pos+19])),
-		}
-
-		c.event[head.Typecode] += 1
-		b, err := parseData(head.Typecode, buf[pos+19:head.NextPosition])
-		if err != nil {
-			// fmt.Println(err)
-			c.error += 1
-			pos = head.NextPosition
-			continue
-		} else {
-			c.success += 1
-		}
-
-		if b.GetType() == "UnknownEvent" {
-			c.unknown += 1
-		}
-
-		event := Event{
-			Header: head,
-			Body:   b,
-		}
-		events = append(events, event)
-
-		pos = head.NextPosition
-	}
-
-	return events, c, nil
 }
 
 func printCount(c Counter) {
