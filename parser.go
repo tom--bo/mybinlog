@@ -85,9 +85,11 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		}
 		return ret, nil
 	case LOAD_EVENT:
+		return LoadEvent{}, nil
 	case SLAVE_EVENT:
 		return UnknownEvent{}, errors.New("SLAVE_EVENT is never used...")
 	case CREATE_FILE_EVENT:
+		return CreateFileEvent{}, nil
 	case APPEND_BLOCK_EVENT:
 		ret := AppendBlock{
 			ID:   int(binary.LittleEndian.Uint32(d[:4])),
@@ -105,6 +107,7 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		}
 		return ret, nil
 	case NEW_LOAD_EVENT:
+		return NewLoadEvent{}, nil
 	case RAND_EVENT:
 		if len(d) != 20 {
 			return Rand{}, errors.New("Unexpected data in RandEvent")
@@ -115,6 +118,7 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 		}, nil
 
 	case USER_VAR_EVENT:
+		return UserVarEvent{}, nil
 	case FORMAT_DESCRIPTION_EVENT: // 15
 		ret := FormatDescriptionEvent{
 			BinlogEvent:      int(binary.LittleEndian.Uint16(d[:2])),
@@ -137,6 +141,7 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 			Data: d[4 : len(d)-4],
 		}, nil
 	case EXECUTE_LOAD_QUERY_EVENT:
+		return ExecuteLoadQueryEvent{}, nil
 	case TABLE_MAP_EVENT:
 		dbNameLen := int(d[8])
 		tableNameLen := int(d[8+dbNameLen+2]) // DBName is terminated by NULL
@@ -165,8 +170,11 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	case PRE_GA_DELETE_ROWS_EVENT:
 		return PreGADeleteRows{}, nil
 	case WRITE_ROWS_EVENT: // not support
+		return WriteRows{}, nil
 	case UPDATE_ROWS_EVENT: // not support
+		return UpdateRows{}, nil
 	case DELETE_ROWS_EVENT: // not support
+		return DeleteRows{}, nil
 	case INCIDENT_EVENT:
 		incidentLen := int(d[1])
 		m := ""
@@ -181,7 +189,9 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	case HEARTBEAT_LOG_EVENT:
 		return HeartbeatLog{}, nil
 	case IGNORABLE_LOG_EVENT:
+		return IgnorableLogEvent{}, nil
 	case ROWS_QUERY_LOG_EVENT:
+		return RowsQueryLogEvent{}, nil
 	case WRITE_ROWS_EVENT2:
 		numOfColPos := 8
 		numOfCol := int(d[numOfColPos])
@@ -225,9 +235,14 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 			AfterImage:   d[isNullEndPos : len(d)-4],
 		}, nil
 	case GTID_LOG_EVENT:
+		return GtidLogEvent{}, nil
 	case ANONYMOUS_GTID_LOG_EVENT:
+		return AnonymousGtidLogEvent{}, nil
 	case PREVIOUS_GTIDS_LOG_EVENT:
+		return PreviousGtidsLogEvent{}, nil
 	case ENUM_END_EVENT:
+		return EnumEndEvent{}, nil
 	}
+
 	return UnknownEvent{}, errors.New("Can't detect event")
 }

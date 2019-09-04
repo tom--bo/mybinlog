@@ -248,8 +248,29 @@ func (a IntVar) GetType() string {
 }
 
 // LOAD_EVENT
+type LoadEvent struct {
+}
+
+func (a LoadEvent) GetType() string {
+	return "LoadEvent"
+}
+
 // SLAVE_EVENT (Never used)
+type SlaveEvent struct {
+}
+
+func (a SlaveEvent) GetType() string {
+	return "SlaveEvent"
+}
+
 // CREATE_FILE_EVENT
+type CreateFileEvent struct {
+}
+
+func (a CreateFileEvent) GetType() string {
+	return "CreateFileEvent"
+}
+
 // APPEND_BLOCK_EVENT
 type AppendBlock struct {
 	ID   int
@@ -279,6 +300,13 @@ func (a DeleteFile) GetType() string {
 }
 
 // NEW_LOAD_EVENT
+type NewLoadEvent struct {
+}
+
+func (a NewLoadEvent) GetType() string {
+	return "NewLoadEvent"
+}
+
 // RAND_EVENT
 type Rand struct {
 	FirstSeed  int
@@ -290,6 +318,13 @@ func (a Rand) GetType() string {
 }
 
 // USER_VAR_EVENT
+type UserVarEvent struct {
+}
+
+func (a UserVarEvent) GetType() string {
+	return "UserVarEvent"
+}
+
 // FORMAT_DESCRIPTION_EVENT
 type FormatDescriptionEvent struct {
 	BinlogEvent      int
@@ -324,6 +359,13 @@ func (a BeginLoadQuery) GetType() string {
 }
 
 // EXECUTE_LOAD_QUERY_EVENT
+type ExecuteLoadQueryEvent struct {
+}
+
+func (a ExecuteLoadQueryEvent) GetType() string {
+	return "ExecuteLoadQueryEvent"
+}
+
 // TABLE_MAP_EVENT
 type TableMapEvent struct {
 	TableID      int
@@ -431,11 +473,73 @@ func (a HeartbeatLog) GetType() string {
 }
 
 // IGNORABLE_LOG_EVENT
+type IgnorableLogEvent struct {
+}
+
+func (a IgnorableLogEvent) GetType() string {
+	return "IgnorableLogEvent"
+}
+
 // ROWS_QUERY_LOG_EVENT
+type RowsQueryLogEvent struct {
+}
+
+func (a RowsQueryLogEvent) GetType() string {
+	return "RowsQueryLogEvent"
+}
+
 // WRITE_ROWS_EVENT2
+type WriteRowsEvent2 struct {
+}
+
+func (a WriteRowsEvent2) GetType() string {
+	return "WriteRowsEvent2"
+}
+
 // UPDATE_ROWS_EVENT2
+type UpdateRowsEvent2 struct {
+}
+
+func (a UpdateRowsEvent2) GetType() string {
+	return "UpdateRowsEvent2"
+}
+
 // DELETE_ROWS_EVENT2
+type DeleteRowsEvent2 struct {
+}
+
+func (a DeleteRowsEvent2) GetType() string {
+	return "DeleteRowsEvent2"
+}
+
 // GTID_LOG_EVENT
+type GtidLogEvent struct {
+}
+
+func (a GtidLogEvent) GetType() string {
+	return "GtidLogEvent"
+}
+
 // ANONYMOUS_GTID_LOG_EVENT
+type AnonymousGtidLogEvent struct {
+}
+
+func (a AnonymousGtidLogEvent) GetType() string {
+	return "AnonymousGtidLogEvent"
+}
+
 // PREVIOUS_GTIDS_LOG_EVENT
+type PreviousGtidsLogEvent struct {
+}
+
+func (a PreviousGtidsLogEvent) GetType() string {
+	return "PreviousGtidsLogEvent"
+}
+
 // ENUM_END_EVENT
+type EnumEndEvent struct {
+}
+
+func (a EnumEndEvent) GetType() string {
+	return "EnumEndEvent"
+}
