@@ -155,6 +155,7 @@ type Header struct {
 func (hd Header) String() string {
 	ret := ""
 	ret = fmt.Sprintf(`%s --------
+[Header]
   EventType   : %s
   ServerID    : %d
   Eventlength : %d

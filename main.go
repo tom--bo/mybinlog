@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"reflect"
 )
 
 var doPrint, doPrintJSON bool
@@ -44,6 +45,7 @@ func printCount(c Counter) {
 	for k, v := range c.event {
 		fmt.Printf("%25s: %d\n", k, v)
 	}
+	fmt.Println()
 }
 
 func printEvents(events []Event) {
@@ -51,7 +53,16 @@ func printEvents(events []Event) {
 		if e.Header.Typecode != UNKNOWN_EVENT {
 			if doPrint {
 				fmt.Println(e.Header)
-				fmt.Printf("%+v", e.Body)
+				// fmt.Printf("%+v", e.Body)
+
+				fmt.Println("[Body]")
+				v := reflect.Indirect(reflect.ValueOf(e.Body))
+				t := v.Type()
+				for i := 0; i < t.NumField(); i++ {
+					fmt.Print("  " + t.Field(i).Name + ": ")
+					fmt.Println(v.Field(i))
+				}
+
 				fmt.Println("\n----------------------------\n")
 			}
 		}
