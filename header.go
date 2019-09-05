@@ -237,10 +237,27 @@ func (a RotateEvent) GetType() string {
 	return "RotateEvent"
 }
 
+type IntVarOpt int
+
+const (
+	LAST_INSERT_ID_EVENT IntVarOpt = 1
+	INSERT_ID_EVENT      IntVarOpt = 2
+)
+
+func (ivo IntVarOpt) String() string {
+	switch ivo {
+	case LAST_INSERT_ID_EVENT:
+		return "LAST_INSERT_ID_EVENT"
+	case INSERT_ID_EVENT:
+		return "INSERT_ID_EVENT"
+	}
+	return "UNKNOWN"
+}
+
 // INTVAR_EVENT
 type IntVar struct {
-	OptVal1 int // 1: LAST_INSERT_ID_EVENT, 2: INSERT_ID_EVENT
-	OptVal2 int // LAST_INSERT_ID() or AUTO_INCREMENT
+	Opt1  IntVarOpt // 1: LAST_INSERT_ID_EVENT, 2: INSERT_ID_EVENT
+	Value int       // LAST_INSERT_ID() or AUTO_INCREMENT
 }
 
 func (a IntVar) GetType() string {

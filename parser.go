@@ -80,8 +80,8 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 			return IntVar{}, errors.New("Unexpected data in INTVAR_EVENT")
 		}
 		ret := IntVar{
-			OptVal1: int(d[0]),
-			OptVal2: int(binary.LittleEndian.Uint64(d[1 : len(d)-4])),
+			Opt1:  IntVarOpt(d[0]),
+			Value: int(binary.LittleEndian.Uint64(d[1 : len(d)-4])),
 		}
 		return ret, nil
 	case LOAD_EVENT:
