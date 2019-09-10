@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -25,16 +26,15 @@ func parseStatusVariables(d []byte) StatusVariable {
 	return StatusVariable{} // ?? todo
 }
 
-/*
 func searchNullPosition(d []byte) int {
 	for i, b := range d {
-		if b == 0 {
+		if int(b) == 0 {
+			fmt.Println(i)
 			return i
 		}
 	}
 	return -1
 }
-*/
 
 // parse database_name and SQL_statement
 func parseAfterStatusVariables(d []byte, dbnamelen int) (string, string) {
@@ -120,9 +120,10 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	case USER_VAR_EVENT:
 		return UserVarEvent{}, nil
 	case FORMAT_DESCRIPTION_EVENT: // 15
+		nullpos := searchNullPosition(d[2:52])
 		ret := FormatDescriptionEvent{
 			BinlogEvent:      int(binary.LittleEndian.Uint16(d[:2])),
-			ServerVersion:    string(d[2:52]),
+			ServerVersion:    string(d[2 : 2+nullpos]),
 			CreateTimeStamp:  time.Unix(int64(binary.LittleEndian.Uint32(d[52:56])), 0),
 			HeaderLength:     int(d[56]),
 			PostHeaderLength: d[57:],
