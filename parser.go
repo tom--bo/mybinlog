@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -29,7 +28,6 @@ func parseStatusVariables(d []byte) StatusVariable {
 func searchNullPosition(d []byte) int {
 	for i, b := range d {
 		if int(b) == 0 {
-			fmt.Println(i)
 			return i
 		}
 	}
