@@ -55,6 +55,7 @@ const (
 	ANONYMOUS_GTID_LOG_EVENT
 	PREVIOUS_GTIDS_LOG_EVENT
 	ENUM_END_EVENT
+	ALL_EVENT // exists only in this code
 )
 
 func (lt LogEventType) String() string {
