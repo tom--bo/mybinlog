@@ -56,7 +56,7 @@ func printCount(c Counter) {
 func printEvents(filter LogEventType, events []Event) {
 	for _, e := range events {
 		typeCode := e.Header.Typecode
-		if typeCode != UNKNOWN_EVENT && (typeCode == filter || typeCode == ALL_EVENT) {
+		if typeCode != UNKNOWN_EVENT && (typeCode == filter || filter == ALL_EVENT) {
 			if doPrint {
 				fmt.Println(e.Header)
 				// fmt.Printf("%+v", e.Body)
