@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -37,6 +38,28 @@ func searchNullPosition(d []byte) int {
 // parse database_name and SQL_statement
 func parseAfterStatusVariables(d []byte, dbnamelen int) (string, string) {
 	return string(d[:dbnamelen]), string(d[dbnamelen+1 : len(d)-4]) // ?? there is unknown 4 byte after sql_statement
+}
+
+func getEnumFieldType(d []byte) []EnumFieldTypes {
+	ret := []EnumFieldTypes{}
+	for _, b := range d {
+		ret = append(ret, EnumFieldTypes(int(b)))
+	}
+	return ret
+}
+
+func getNullColumns(d []byte) []int {
+	ret := []int{}
+	for i, b := range d {
+		s := fmt.Sprintf("%b", int(b))
+		for j, ss := range s {
+			if ss == '1' {
+				ret = append(ret, i*8+(len(s)-j-1))
+			}
+		}
+	}
+
+	return ret
 }
 
 func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
@@ -157,10 +180,10 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 			TableNameLen: tableNameLen,
 			TableName:    string(d[tableNamePos : tableNamePos+tableNameLen]),
 			NumOfCol:     int(d[numOfColPos]),
-			ColType:      d[numOfColPos+1 : numOfColPos+1+numOfCol],
+			ColType:      getEnumFieldType(d[numOfColPos+1 : numOfColPos+1+numOfCol]),
 			MetaBlockLen: int(d[metaBlockLenPos]),
 			MetaBlock:    d[metaBlockLenPos+1 : isNullPos],
-			IsNull:       d[isNullPos : isNullPos+(numOfCol+7)/8],
+			NullColumns:  getNullColumns(d[isNullPos : isNullPos+(numOfCol+7)/8]),
 		}, nil
 	case PRE_GA_WRITE_ROWS_EVENT:
 		return PreGAWriteRows{}, nil

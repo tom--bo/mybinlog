@@ -8,6 +8,7 @@ import (
 const layout = "2006-01-02 15:04:05"
 
 type LogEventType int
+type EnumFieldTypes int
 
 type Counter struct {
 	total   int
@@ -393,10 +394,10 @@ type TableMapEvent struct {
 	TableNameLen int
 	TableName    string
 	NumOfCol     int
-	ColType      []byte
+	ColType      []EnumFieldTypes
 	MetaBlockLen int
 	MetaBlock    []byte
-	IsNull       []byte
+	NullColumns  []int
 }
 
 func (a TableMapEvent) GetType() string {
@@ -560,4 +561,108 @@ type EnumEndEvent struct {
 
 func (a EnumEndEvent) GetType() string {
 	return "EnumEndEvent"
+}
+
+const (
+	MYSQL_TYPE_DECIMAL EnumFieldTypes = iota
+	MYSQL_TYPE_TINY
+	MYSQL_TYPE_SHORT
+	MYSQL_TYPE_LONG
+	MYSQL_TYPE_FLOAT
+	MYSQL_TYPE_DOUBLE
+	MYSQL_TYPE_NULL
+	MYSQL_TYPE_TIMESTAMP
+	MYSQL_TYPE_LONGLONG
+	MYSQL_TYPE_INT24
+	MYSQL_TYPE_DATE
+	MYSQL_TYPE_TIME
+	MYSQL_TYPE_DATETIME
+	MYSQL_TYPE_YEAR
+	MYSQL_TYPE_NEWDATE
+	MYSQL_TYPE_VARCHAR
+	MYSQL_TYPE_BIT
+	MYSQL_TYPE_TIMESTAMP2
+	MYSQL_TYPE_DATETIME2
+	MYSQL_TYPE_TIME2
+	MYSQL_TYPE_JSON        = 245
+	MYSQL_TYPE_NEWDECIMAL  = 246
+	MYSQL_TYPE_ENUM        = 247
+	MYSQL_TYPE_SET         = 248
+	MYSQL_TYPE_TINY_BLOB   = 249
+	MYSQL_TYPE_MEDIUM_BLOB = 250
+	MYSQL_TYPE_LONG_BLOB   = 251
+	MYSQL_TYPE_BLOB        = 252
+	MYSQL_TYPE_VAR_STRING  = 253
+	MYSQL_TYPE_STRING      = 254
+	MYSQL_TYPE_GEOMETRY    = 255
+)
+
+func (eft EnumFieldTypes) String() string {
+	switch eft {
+	case MYSQL_TYPE_DECIMAL:
+		return "DECIMAL"
+	case MYSQL_TYPE_TINY:
+		return "TINY"
+	case MYSQL_TYPE_SHORT:
+		return "SHORT"
+	case MYSQL_TYPE_LONG:
+		return "LONG"
+	case MYSQL_TYPE_FLOAT:
+		return "FLOAT"
+	case MYSQL_TYPE_DOUBLE:
+		return "DOUBLE"
+	case MYSQL_TYPE_NULL:
+		return "NULL"
+	case MYSQL_TYPE_TIMESTAMP:
+		return "TIMESTAMP"
+	case MYSQL_TYPE_LONGLONG:
+		return "LONGLONG"
+	case MYSQL_TYPE_INT24:
+		return "INT24"
+	case MYSQL_TYPE_DATE:
+		return "DATE"
+	case MYSQL_TYPE_TIME:
+		return "TIME"
+	case MYSQL_TYPE_DATETIME:
+		return "DATETIME"
+	case MYSQL_TYPE_YEAR:
+		return "YEAR"
+	case MYSQL_TYPE_NEWDATE:
+		return "NEWDATE"
+	case MYSQL_TYPE_VARCHAR:
+		return "VARCHAR"
+	case MYSQL_TYPE_BIT:
+		return "BIT"
+	case MYSQL_TYPE_TIMESTAMP2:
+		return "TIMESTAMP2"
+	case MYSQL_TYPE_DATETIME2:
+		return "DATETIME2"
+	case MYSQL_TYPE_TIME2:
+		return "TIME2"
+	case MYSQL_TYPE_JSON:
+		return "JSON"
+	case MYSQL_TYPE_NEWDECIMAL:
+		return "NEWDECIMAL"
+	case MYSQL_TYPE_ENUM:
+		return "ENUM"
+	case MYSQL_TYPE_SET:
+		return "SET"
+	case MYSQL_TYPE_TINY_BLOB:
+		return "TINY_BLOB"
+	case MYSQL_TYPE_MEDIUM_BLOB:
+		return "MEDIUM_BLOB"
+	case MYSQL_TYPE_LONG_BLOB:
+		return "LONG_BLOB"
+	case MYSQL_TYPE_BLOB:
+		return "BLOB"
+	case MYSQL_TYPE_VAR_STRING:
+		return "VAR_STRING"
+	case MYSQL_TYPE_STRING:
+		return "STRING"
+	case MYSQL_TYPE_GEOMETRY:
+		return "GEOMETRY"
+	default:
+		return "UNKNOWN_TYPE"
+	}
+	return "UNKNOWN_TYPE"
 }
