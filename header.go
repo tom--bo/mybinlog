@@ -397,7 +397,7 @@ type TableMapEvent struct {
 	ColType      []EnumFieldTypes
 	MetaBlockLen int
 	MetaBlock    []byte
-	NullColumns  []int
+	NullColumns  string
 }
 
 func (a TableMapEvent) GetType() string {
@@ -430,12 +430,13 @@ func (a PreGADeleteRows) GetType() string {
 
 // WRITE_ROWS_EVENT
 type WriteRows struct {
-	TableID      int
-	ReservedByte []byte
-	NumOfCol     int
-	IsUsed       []byte
-	IsNull       []byte
-	AfterImage   []byte // todo
+	TableID       int
+	ReservedByte  []byte
+	NumOfCol      int
+	IsUsedAfter   string
+	IsNullAfter   string
+	AfterImage    []byte // todo
+	AfterNumOfCol []byte
 }
 
 func (a WriteRows) GetType() string {
@@ -444,14 +445,15 @@ func (a WriteRows) GetType() string {
 
 // UPDATE_ROWS_EVENT
 type UpdateRows struct {
-	TableID      int
-	ReservedByte []byte
-	NumOfCol     int
-	IsUsedBefore []byte
-	IsUsedAfter  []byte
-	IsNull       []byte
-	BeforeImage  []byte // todo
-	AfterImage   []byte // todo
+	TableID             int
+	ReservedByte        []byte
+	NumOfCol            int
+	IsUsedBefore        string
+	IsUsedAfter         string
+	IsNullBefore        string
+	IsNullAfter         string
+	BeforeAndAfterImage []byte // todo
+	AfterNumOfCol       []byte
 }
 
 func (a UpdateRows) GetType() string {
@@ -460,12 +462,13 @@ func (a UpdateRows) GetType() string {
 
 // DELETE_ROWS_EVENT
 type DeleteRows struct {
-	TableID      int
-	ReservedByte []byte
-	NumOfCol     int
-	IsUsed       []byte
-	IsNull       []byte
-	AfterImage   []byte // todo
+	TableID       int
+	ReservedByte  []byte
+	NumOfCol      int
+	IsUsed        string
+	IsNull        string
+	AfterImage    []byte // todo
+	AfterNumOfCol []byte
 }
 
 func (a DeleteRows) GetType() string {

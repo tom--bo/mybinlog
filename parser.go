@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -48,15 +49,12 @@ func getEnumFieldType(d []byte) []EnumFieldTypes {
 	return ret
 }
 
-func getNullColumns(d []byte) []int {
-	ret := []int{}
-	for i, b := range d {
-		s := fmt.Sprintf("%b", int(b))
-		for j, ss := range s {
-			if ss == '1' {
-				ret = append(ret, i*8+(len(s)-j-1))
-			}
-		}
+func getBitField(d []byte) string {
+	ret := ""
+	for _, b := range d {
+		s := fmt.Sprintf("%8b", int(b))
+		s = strings.Replace(s, " ", "0", -1)
+		ret = s + ret
 	}
 
 	return ret
@@ -183,7 +181,7 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 			ColType:      getEnumFieldType(d[numOfColPos+1 : numOfColPos+1+numOfCol]),
 			MetaBlockLen: int(d[metaBlockLenPos]),
 			MetaBlock:    d[metaBlockLenPos+1 : isNullPos],
-			NullColumns:  getNullColumns(d[isNullPos : isNullPos+(numOfCol+7)/8]),
+			NullColumns:  getBitField(d[isNullPos : isNullPos+(numOfCol+7)/8]),
 		}, nil
 	case PRE_GA_WRITE_ROWS_EVENT:
 		return PreGAWriteRows{}, nil
@@ -215,45 +213,48 @@ func parseData(typeCode LogEventType, d []byte) (Ibody, error) {
 	case ROWS_QUERY_LOG_EVENT:
 		return RowsQueryLogEvent{}, nil
 	case WRITE_ROWS_EVENT2:
-		numOfColPos := 8
+		numOfColPos := 10
 		numOfCol := int(d[numOfColPos])
 		isUsedEndPos := numOfColPos + 1 + (numOfCol+7)/8
 		isNullEndPos := isUsedEndPos + (numOfCol+7)/8
 		return WriteRows{
-			TableID:      int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
-			ReservedByte: d[6:8],
-			NumOfCol:     numOfCol,
-			IsUsed:       d[numOfColPos+1 : isUsedEndPos],
-			IsNull:       d[isUsedEndPos:isNullEndPos],
-			AfterImage:   d[isNullEndPos : len(d)-4],
+			TableID:       int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
+			ReservedByte:  d[6:10],
+			NumOfCol:      numOfCol,
+			IsUsedAfter:   getBitField(d[numOfColPos+1 : isUsedEndPos]),
+			IsNullAfter:   getBitField(d[isUsedEndPos:isNullEndPos]),
+			AfterImage:    d[isNullEndPos : len(d)-4],
+			AfterNumOfCol: d[numOfColPos+1:],
 		}, nil
 	case UPDATE_ROWS_EVENT2:
-		numOfColPos := 8
+		numOfColPos := 10
 		numOfCol := int(d[numOfColPos])
 		isUsedBeforeEndPos := numOfColPos + 1 + (numOfCol+7)/8
 		isUsedAfterEndPos := isUsedBeforeEndPos + (numOfCol+7)/8
-		isNullEndPos := isUsedAfterEndPos + (numOfCol+7)/8
+		isNullBeforeEndPos := isUsedAfterEndPos + (numOfCol+7)/8
+		isNullAfterEndPos := isNullBeforeEndPos + (numOfCol+7)/8
 		return UpdateRows{
-			TableID:      int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
-			ReservedByte: d[6:8],
-			NumOfCol:     numOfCol,
-			IsUsedBefore: d[numOfColPos+1 : isUsedBeforeEndPos],
-			IsUsedAfter:  d[isUsedBeforeEndPos:isUsedAfterEndPos],
-			IsNull:       d[isUsedAfterEndPos:isNullEndPos],
-			BeforeImage:  d[isNullEndPos : len(d)-4], // todo
-			AfterImage:   d[isNullEndPos : len(d)-4], // todo
+			TableID:             int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
+			ReservedByte:        d[6:10],
+			NumOfCol:            numOfCol,
+			IsUsedBefore:        getBitField(d[numOfColPos+1 : isUsedBeforeEndPos]),
+			IsUsedAfter:         getBitField(d[isUsedBeforeEndPos:isUsedAfterEndPos]),
+			IsNullBefore:        getBitField(d[isUsedAfterEndPos:isNullBeforeEndPos]),
+			IsNullAfter:         getBitField(d[isNullBeforeEndPos:isNullAfterEndPos]),
+			BeforeAndAfterImage: d[isNullAfterEndPos : len(d)-4], // todo
+			AfterNumOfCol:       d[numOfColPos+1:],
 		}, nil
 	case DELETE_ROWS_EVENT2:
-		numOfColPos := 8
+		numOfColPos := 10
 		numOfCol := int(d[numOfColPos])
 		isUsedEndPos := numOfColPos + 1 + (numOfCol+7)/8
 		isNullEndPos := isUsedEndPos + (numOfCol+7)/8
 		return DeleteRows{
 			TableID:      int(binary.LittleEndian.Uint64(append(d[:6], []byte{0, 0}...))),
-			ReservedByte: d[6:8],
+			ReservedByte: d[6:10],
 			NumOfCol:     numOfCol,
-			IsUsed:       d[numOfColPos+1 : isUsedEndPos],
-			IsNull:       d[isUsedEndPos:isNullEndPos],
+			IsUsed:       getBitField(d[numOfColPos+1 : isUsedEndPos]),
+			IsNull:       getBitField(d[isUsedEndPos:isNullEndPos]),
 			AfterImage:   d[isNullEndPos : len(d)-4],
 		}, nil
 	case GTID_LOG_EVENT:
