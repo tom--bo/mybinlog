@@ -12,6 +12,7 @@ import (
 var (
 	doPrint     bool
 	doPrintJSON bool
+	queryFilter bool
 	filterEvent string
 )
 
@@ -57,7 +58,12 @@ func printEvents(filter LogEventType, events []Event) {
 	for _, e := range events {
 		typeCode := e.Header.Typecode
 		if typeCode != UNKNOWN_EVENT && (typeCode == filter || filter == ALL_EVENT) {
-			if doPrint {
+			if queryFilter {
+				if typeCode == QUERY_EVENT {
+					v := reflect.Indirect(reflect.ValueOf(e.Body))
+					fmt.Println(v.FieldByName("SQLStatement"))
+				}
+			} else if doPrint {
 				fmt.Println(e.Header)
 				// fmt.Printf("%+v", e.Body)
 
@@ -178,6 +184,7 @@ func main() {
 	flag.BoolVar(&doPrint, "p", false, "Do print events")
 	flag.BoolVar(&doPrintJSON, "j", false, "Do print event headers as JSON")
 	flag.StringVar(&filterEvent, "f", "", "Event filter")
+	flag.BoolVar(&queryFilter, "q", false, "Query filter")
 	flag.Parse()
 
 	filter, err := checkEventFilter(filterEvent)
